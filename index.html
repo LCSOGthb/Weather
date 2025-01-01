@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f8ff;
+    }
+    header {
+      background-color: #4caf50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      padding: 1rem;
+      text-align: center;
+    }
+    .weather-container {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 2rem;
+    }
+    .weather-box {
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: white;
+      width: 45%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Weather Information</h1>
+  </header>
+  <main>
+    <input type="text" id="city" placeholder="Enter city name" />
+    <button id="fetch-weather">Get Weather</button>
+
+    <div class="weather-container">
+      <div id="weatherapi" class="weather-box">
+        <h3>WeatherAPI</h3>
+        <p id="weatherapi-info">No data yet.</p>
+      </div>
+      <div id="openweather" class="weather-box">
+        <h3>OpenWeather</h3>
+        <p id="openweather-info">No data yet.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const weatherApiKey = 'YOUR_WEATHERAPI_KEY';
+    const openWeatherApiKey = 'YOUR_OPENWEATHER_KEY';
+
+    document.getElementById('fetch-weather').addEventListener('click', async () => {
+      const city = document.getElementById('city').value.trim();
+      if (!city) {
+        alert('Please enter a city name.');
+        return;
+      }
+
+      try {
+        // Fetch from WeatherAPI
+        const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`);
+        const weatherApiData = await weatherApiResponse.json();
+        document.getElementById('weatherapi-info').innerHTML = `
+          Temperature: ${weatherApiData.current.temp_c}°C<br>
+          Condition: ${weatherApiData.current.condition.text}<br>
+          Humidity: ${weatherApiData.current.humidity}%
+        `;
+
+        // Fetch from OpenWeather
+        const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`);
+        const openWeatherData = await openWeatherResponse.json();
+        document.getElementById('openweather-info').innerHTML = `
+          Temperature: ${openWeatherData.main.temp}°C<br>
+          Condition: ${openWeatherData.weather[0].description}<br>
+          Humidity: ${openWeatherData.main.humidity}%
+        `;
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+        alert('Failed to fetch weather data. Please check the city name and try again.');
+      }
+    });
+  </script>
+</body>
+</html>
