@@ -5,148 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather Website</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    /* Basic styling for body, including font and background gradient */
-    body {
-      font-family: 'Roboto', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(to bottom, #f0f8ff, #e0f7fa);
-      color: #333;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Dark theme styling */
-    body.dark {
-      background: #2e2e2e;
-      color: #f0f0f0;
-    }
-
-    /* Header styles */
-    header {
-      background-color: #4caf50;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.8rem;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Main container styles */
-    main {
-      padding: 2rem;
-      text-align: center;
-    }
-
-    /* Input box styling */
-    input[type="text"] {
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-right: 0.5rem;
-      width: 250px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Button styling */
-    button {
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      color: white;
-      background-color: #4caf50;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #45a049;
-      transform: scale(1.05);
-    }
-
-    /* Refresh button styling */
-    button.refresh {
-      padding: 0.8rem;
-      background: url('refresh-icon.png') no-repeat center center / contain;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-    }
-
-    button.refresh.loading {
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Weather container and box styling */
-    .weather-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-
-    .weather-box {
-      border: 1px solid #ddd;
-      padding: 1.5rem;
-      border-radius: 8px;
-      background-color: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      text-align: left;
-      position: relative;
-    }
-
-    .weather-box h3 {
-      margin-top: 0;
-      font-size: 1.5rem;
-    }
-
-    .weather-box p {
-      margin: 0.5rem 0;
-    }
-
-    .weather-box:before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(to right, #4caf50, #45a049);
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-
-    /* Footer styling */
-    footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background-color: #f0f8ff;
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      color: #555;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Responsive input box width */
-    @media (max-width: 600px) {
-      input[type="text"] {
-        width: 200px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
@@ -185,7 +44,7 @@
   <script>
     const weatherApiKey = '2b3b27ae03a94c1a91d23532250101';
     const openWeatherApiKey = '94cb634cb2ca6bc30356954cf33e473e';
-    const accuweatherApiKey = 'f4f1a9e2d8msh123exampleapikey'; // Replace with your actual AccuWeather API key
+    const accuweatherApiKey = 'rSD2FhADg0NyAGAH05yIX5RytixKSoLa';
 
     // Fetch weather data based on city input
     async function fetchWeatherData() {
