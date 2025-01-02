@@ -7,6 +7,17 @@ body {
   color: #333;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 /* Header Styling */
 header {
   background-color: #0288d1;
@@ -39,8 +50,11 @@ header {
   cursor: pointer;
 }
 
+.input-container button:focus,
 .input-container button:hover {
   background-color: #0277bd;
+  outline: none;
+  box-shadow: 0 0 3px #555;
 }
 
 /* Weather Container */
@@ -86,5 +100,4 @@ footer {
   margin: 1rem 0;
   border: 1px solid #f44336;
   border-radius: 8px;
-  font-family: Arial, sans-serif;
 }
