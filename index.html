@@ -6,6 +6,7 @@
   <title>Weather Website</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    /* Basic styling for body, including font and background gradient */
     body {
       font-family: 'Roboto', Arial, sans-serif;
       margin: 0;
@@ -14,10 +15,14 @@
       color: #333;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
+
+    /* Dark theme styling */
     body.dark {
       background: #2e2e2e;
       color: #f0f0f0;
     }
+
+    /* Header styles */
     header {
       background-color: #4caf50;
       color: white;
@@ -26,10 +31,14 @@
       font-size: 1.8rem;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
+
+    /* Main container styles */
     main {
       padding: 2rem;
       text-align: center;
     }
+
+    /* Input box styling */
     input[type="text"] {
       padding: 0.8rem;
       font-size: 1rem;
@@ -39,6 +48,8 @@
       width: 250px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
+
+    /* Button styling */
     button {
       padding: 0.8rem 1.5rem;
       font-size: 1rem;
@@ -49,10 +60,13 @@
       cursor: pointer;
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
+
     button:hover {
       background-color: #45a049;
       transform: scale(1.05);
     }
+
+    /* Refresh button styling */
     button.refresh {
       padding: 0.8rem;
       background: url('refresh-icon.png') no-repeat center center / contain;
@@ -60,12 +74,28 @@
       height: 50px;
       border-radius: 50%;
     }
+
+    button.refresh.loading {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Weather container and box styling */
     .weather-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
       margin-top: 2rem;
     }
+
     .weather-box {
       border: 1px solid #ddd;
       padding: 1.5rem;
@@ -75,13 +105,16 @@
       text-align: left;
       position: relative;
     }
+
     .weather-box h3 {
       margin-top: 0;
       font-size: 1.5rem;
     }
+
     .weather-box p {
       margin: 0.5rem 0;
     }
+
     .weather-box:before {
       content: '';
       position: absolute;
@@ -93,6 +126,8 @@
       border-top-left-radius: 8px;
       border-top-right-radius: 8px;
     }
+
+    /* Footer styling */
     footer {
       position: fixed;
       bottom: 0;
@@ -104,6 +139,8 @@
       color: #555;
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     }
+
+    /* Responsive input box width */
     @media (max-width: 600px) {
       input[type="text"] {
         width: 200px;
@@ -116,10 +153,13 @@
     <h1>Weather Information</h1>
   </header>
   <main>
+    <!-- Input field for city name and buttons for weather fetch and GPS detection -->
     <input type="text" id="city" placeholder="Enter city name" />
     <button id="fetch-weather">Get Weather</button>
+    <button id="fetch-location-weather">Use My Location</button>
     <button id="refresh-weather" class="refresh"></button>
 
+    <!-- Weather information containers -->
     <div class="weather-container">
       <div id="weatherapi" class="weather-box">
         <h3>WeatherAPI</h3>
@@ -145,14 +185,18 @@
   <script>
     const weatherApiKey = '2b3b27ae03a94c1a91d23532250101';
     const openWeatherApiKey = '94cb634cb2ca6bc30356954cf33e473e';
-    const accuweatherApiKey = 'rSD2FhADg0NyAGAH05yIX5RytixKSoLa'; // Replace with your actual AccuWeather API key
+    const accuweatherApiKey = 'f4f1a9e2d8msh123exampleapikey'; // Replace with your actual AccuWeather API key
 
+    // Fetch weather data based on city input
     async function fetchWeatherData() {
       const city = document.getElementById('city').value.trim();
       if (!city) {
         alert('Please enter a city name.');
         return;
       }
+
+      const refreshButton = document.getElementById('refresh-weather');
+      refreshButton.classList.add('loading');
 
       try {
         const currentTime = new Date().toLocaleString();
@@ -196,22 +240,98 @@
         }
       } catch (error) {
         console.error('Error fetching weather data:', error);
-        alert('Failed to fetch weather data. Please check the city name and try again.');
+        document.body.insertAdjacentHTML('beforeend', `<div style="color: red; margin-top: 10px;">Failed to fetch weather data. Please check the city name and try again.</div>`);
+      } finally {
+        refreshButton.classList.remove('loading');
       }
     }
 
+    // Fetch weather data using GPS coordinates
+    async function fetchWeatherByLocation() {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+
+      const refreshButton = document.getElementById('refresh-weather');
+      refreshButton.classList.add('loading');
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        const locationQuery = `${latitude},${longitude}`;
+
+        try {
+          const currentTime = new Date().toLocaleString();
+
+          // Fetch from WeatherAPI
+          const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${locationQuery}`);
+          const weatherApiData = await weatherApiResponse.json();
+          document.getElementById('weatherapi-info').innerHTML = `
+            Temperature: ${weatherApiData.current.temp_c}°C<br>
+            Condition: ${weatherApiData.current.condition.text}<br>
+            Humidity: ${weatherApiData.current.humidity}%
+          `;
+          document.getElementById('weatherapi-time').textContent = `Data collected at: ${currentTime}`;
+
+          // Fetch from OpenWeather
+          const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${openWeatherApiKey}&units=metric`);
+          const openWeatherData = await openWeatherResponse.json();
+          document.getElementById('openweather-info').innerHTML = `
+            Temperature: ${openWeatherData.main.temp}°C<br>
+            Condition: ${openWeatherData.weather[0].description}<br>
+            Humidity: ${openWeatherData.main.humidity}%
+          `;
+          document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
+
+          // Fetch from AccuWeather
+          const accuweatherLocationResponse = await fetch(`https://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${accuweatherApiKey}&q=${latitude},${longitude}`);
+          const accuweatherLocationData = await accuweatherLocationResponse.json();
+          const locationKey = accuweatherLocationData.Key;
+          const accuweatherWeatherResponse = await fetch(`https://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${accuweatherApiKey}`);
+          const accuweatherWeatherData = await accuweatherWeatherResponse.json();
+          const weather = accuweatherWeatherData[0];
+          document.getElementById('accuweather-info').innerHTML = `
+            Temperature: ${weather.Temperature.Metric.Value}°C<br>
+            Condition: ${weather.WeatherText}<br>
+            Humidity: ${weather.RelativeHumidity}%
+          `;
+          document.getElementById('accuweather-time').textContent = `Data collected at: ${currentTime}`;
+        } catch (error) {
+          console.error('Error fetching weather data by location:', error);
+          document.body.insertAdjacentHTML('beforeend', `<div style="color: red; margin-top: 10px;">Failed to fetch weather data. Please try again.</div>`);
+        } finally {
+          refreshButton.classList.remove('loading');
+        }
+      }, (error) => {
+        console.error('Geolocation error:', error);
+        alert('Unable to retrieve location. Please try again.');
+        refreshButton.classList.remove('loading');
+      });
+    }
+
     document.getElementById('fetch-weather').addEventListener('click', fetchWeatherData);
+    document.getElementById('fetch-location-weather').addEventListener('click', fetchWeatherByLocation);
     document.getElementById('refresh-weather').addEventListener('click', fetchWeatherData);
 
     // Theme toggle functionality
     const toggleTheme = () => {
       document.body.classList.toggle('dark');
+      const isDarkMode = document.body.classList.contains('dark');
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     };
+
+    // Add theme toggle button dynamically
     const settingsButton = document.createElement('button');
     settingsButton.textContent = 'Toggle Theme';
     settingsButton.style.marginLeft = '1rem';
     settingsButton.onclick = toggleTheme;
     document.querySelector('main').appendChild(settingsButton);
+
+    // Apply saved theme on load
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark');
+    }
   </script>
 </body>
 </html>
