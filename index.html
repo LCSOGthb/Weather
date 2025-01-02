@@ -16,9 +16,9 @@
     header {
       background-color: #4caf50;
       color: white;
-      padding: 1.5rem;
+      padding: 1rem;
       text-align: center;
-      font-size: 2rem;
+      font-size: 1.8rem;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     main {
@@ -49,9 +49,8 @@
       transform: scale(1.05);
     }
     .weather-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
       margin-top: 2rem;
     }
@@ -60,7 +59,6 @@
       padding: 1.5rem;
       border-radius: 8px;
       background-color: white;
-      width: 300px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: left;
       position: relative;
@@ -96,9 +94,6 @@
       input[type="text"] {
         width: 200px;
       }
-      .weather-box {
-        width: 100%;
-      }
     }
   </style>
 </head>
@@ -109,15 +104,28 @@
   <main>
     <input type="text" id="city" placeholder="Enter city name" />
     <button id="fetch-weather">Get Weather</button>
+    <button id="refresh-weather">Refresh</button>
 
     <div class="weather-container">
       <div id="weatherapi" class="weather-box">
         <h3>WeatherAPI</h3>
         <p id="weatherapi-info">No data yet.</p>
+        <p id="weatherapi-time" style="font-size: 0.9rem; color: #666;"></p>
       </div>
       <div id="openweather" class="weather-box">
         <h3>OpenWeather</h3>
         <p id="openweather-info">No data yet.</p>
+        <p id="openweather-time" style="font-size: 0.9rem; color: #666;"></p>
+      </div>
+      <div id="forecast" class="weather-box">
+        <h3>Forecast</h3>
+        <p id="forecast-info">No data yet.</p>
+        <p id="forecast-time" style="font-size: 0.9rem; color: #666;"></p>
+      </div>
+      <div id="alerts" class="weather-box">
+        <h3>Weather Alerts</h3>
+        <p id="alerts-info">No data yet.</p>
+        <p id="alerts-time" style="font-size: 0.9rem; color: #666;"></p>
       </div>
     </div>
   </main>
@@ -129,7 +137,7 @@
     const weatherApiKey = '2b3b27ae03a94c1a91d23532250101';
     const openWeatherApiKey = '94cb634cb2ca6bc30356954cf33e473e';
 
-    document.getElementById('fetch-weather').addEventListener('click', async () => {
+    async function fetchWeatherData() {
       const city = document.getElementById('city').value.trim();
       if (!city) {
         alert('Please enter a city name.');
@@ -137,6 +145,8 @@
       }
 
       try {
+        const currentTime = new Date().toLocaleString();
+
         // Fetch from WeatherAPI
         const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`);
         const weatherApiData = await weatherApiResponse.json();
@@ -145,6 +155,7 @@
           Condition: ${weatherApiData.current.condition.text}<br>
           Humidity: ${weatherApiData.current.humidity}%
         `;
+        document.getElementById('weatherapi-time').textContent = `Data collected at: ${currentTime}`;
 
         // Fetch from OpenWeather
         const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`);
@@ -154,11 +165,22 @@
           Condition: ${openWeatherData.weather[0].description}<br>
           Humidity: ${openWeatherData.main.humidity}%
         `;
+        document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
+
+        // Example additional sections (Forecast and Alerts)
+        document.getElementById('forecast-info').innerHTML = `Forecast data for ${city} goes here.`;
+        document.getElementById('forecast-time').textContent = `Data collected at: ${currentTime}`;
+        document.getElementById('alerts-info').innerHTML = `Weather alerts for ${city} will appear here.`;
+        document.getElementById('alerts-time').textContent = `Data collected at: ${currentTime}`;
       } catch (error) {
         console.error('Error fetching weather data:', error);
         alert('Failed to fetch weather data. Please check the city name and try again.');
       }
-    });
+    }
+
+    document.getElementById('fetch-weather').addEventListener('click', fetchWeatherData);
+
+    document.getElementById('refresh-weather').addEventListener('click', fetchWeatherData);
   </script>
 </body>
 </html>
