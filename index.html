@@ -12,6 +12,11 @@
       padding: 0;
       background: linear-gradient(to bottom, #f0f8ff, #e0f7fa);
       color: #333;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark {
+      background: #2e2e2e;
+      color: #f0f0f0;
     }
     header {
       background-color: #4caf50;
@@ -48,6 +53,13 @@
       background-color: #45a049;
       transform: scale(1.05);
     }
+    button.refresh {
+      padding: 0.8rem;
+      background: url('refresh-icon.png') no-repeat center center / contain;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
     .weather-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -82,7 +94,9 @@
       border-top-right-radius: 8px;
     }
     footer {
-      margin-top: 2rem;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
       background-color: #f0f8ff;
       text-align: center;
       padding: 1rem;
@@ -104,7 +118,7 @@
   <main>
     <input type="text" id="city" placeholder="Enter city name" />
     <button id="fetch-weather">Get Weather</button>
-    <button id="refresh-weather">Refresh</button>
+    <button id="refresh-weather" class="refresh"></button>
 
     <div class="weather-container">
       <div id="weatherapi" class="weather-box">
@@ -117,25 +131,21 @@
         <p id="openweather-info">No data yet.</p>
         <p id="openweather-time" style="font-size: 0.9rem; color: #666;"></p>
       </div>
-      <div id="forecast" class="weather-box">
-        <h3>Forecast</h3>
-        <p id="forecast-info">No data yet.</p>
-        <p id="forecast-time" style="font-size: 0.9rem; color: #666;"></p>
-      </div>
-      <div id="alerts" class="weather-box">
-        <h3>Weather Alerts</h3>
-        <p id="alerts-info">No data yet.</p>
-        <p id="alerts-time" style="font-size: 0.9rem; color: #666;"></p>
+      <div id="accuweather" class="weather-box">
+        <h3>AccuWeather</h3>
+        <p id="accuweather-info">No data yet.</p>
+        <p id="accuweather-time" style="font-size: 0.9rem; color: #666;"></p>
       </div>
     </div>
   </main>
   <footer>
-    Powered by WeatherAPI and OpenWeather &copy; 2025
+    Powered by WeatherAPI, OpenWeather, and AccuWeather &copy; 2025
   </footer>
 
   <script>
     const weatherApiKey = '2b3b27ae03a94c1a91d23532250101';
     const openWeatherApiKey = '94cb634cb2ca6bc30356954cf33e473e';
+    const accuweatherApiKey = 'rSD2FhADg0NyAGAH05yIX5RytixKSoLa'; // Replace with your actual AccuWeather API key
 
     async function fetchWeatherData() {
       const city = document.getElementById('city').value.trim();
@@ -167,11 +177,23 @@
         `;
         document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
 
-        // Example additional sections (Forecast and Alerts)
-        document.getElementById('forecast-info').innerHTML = `Forecast data for ${city} goes here.`;
-        document.getElementById('forecast-time').textContent = `Data collected at: ${currentTime}`;
-        document.getElementById('alerts-info').innerHTML = `Weather alerts for ${city} will appear here.`;
-        document.getElementById('alerts-time').textContent = `Data collected at: ${currentTime}`;
+        // Fetch from AccuWeather
+        const accuweatherLocationResponse = await fetch(`https://dataservice.accuweather.com/locations/v1/cities/search?apikey=${accuweatherApiKey}&q=${city}`);
+        const accuweatherLocationData = await accuweatherLocationResponse.json();
+        if (accuweatherLocationData.length > 0) {
+          const locationKey = accuweatherLocationData[0].Key;
+          const accuweatherWeatherResponse = await fetch(`https://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${accuweatherApiKey}`);
+          const accuweatherWeatherData = await accuweatherWeatherResponse.json();
+          if (accuweatherWeatherData.length > 0) {
+            const weather = accuweatherWeatherData[0];
+            document.getElementById('accuweather-info').innerHTML = `
+              Temperature: ${weather.Temperature.Metric.Value}°C<br>
+              Condition: ${weather.WeatherText}<br>
+              Humidity: ${weather.RelativeHumidity}%
+            `;
+            document.getElementById('accuweather-time').textContent = `Data collected at: ${currentTime}`;
+          }
+        }
       } catch (error) {
         console.error('Error fetching weather data:', error);
         alert('Failed to fetch weather data. Please check the city name and try again.');
@@ -179,8 +201,17 @@
     }
 
     document.getElementById('fetch-weather').addEventListener('click', fetchWeatherData);
-
     document.getElementById('refresh-weather').addEventListener('click', fetchWeatherData);
+
+    // Theme toggle functionality
+    const toggleTheme = () => {
+      document.body.classList.toggle('dark');
+    };
+    const settingsButton = document.createElement('button');
+    settingsButton.textContent = 'Toggle Theme';
+    settingsButton.style.marginLeft = '1rem';
+    settingsButton.onclick = toggleTheme;
+    document.querySelector('main').appendChild(settingsButton);
   </script>
 </body>
 </html>
