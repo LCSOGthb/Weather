@@ -13,7 +13,7 @@
   </header>
 
   <!-- Summary Section -->
-  <section id="summary-section" style="padding: 1rem; border: 1px solid #ccc; margin: 1rem; border-radius: 8px; background-color: #f9f9f9;">
+  <section id="summary-section" class="summary-section">
     <h2>Summary</h2>
     <p id="summary-info">No data collected yet. Please fetch weather data to see the summary.</p>
   </section>
@@ -21,6 +21,7 @@
   <main>
     <!-- Input field for city name and buttons for weather fetch and GPS detection -->
     <div class="input-container">
+      <label for="city" class="visually-hidden">City Name</label>
       <input type="text" id="city" placeholder="Enter city name" />
       <button id="fetch-weather">Get Weather</button>
       <button id="fetch-location-weather">Use My Location</button>
@@ -32,138 +33,25 @@
       <div id="weatherapi" class="weather-box">
         <h3>WeatherAPI</h3>
         <p id="weatherapi-info">No data yet.</p>
-        <p id="weatherapi-time" style="font-size: 0.9rem; color: #666;"></p>
+        <p id="weatherapi-time" class="timestamp"></p>
       </div>
       <div id="openweather" class="weather-box">
         <h3>OpenWeather</h3>
         <p id="openweather-info">No data yet.</p>
-        <p id="openweather-time" style="font-size: 0.9rem; color: #666;"></p>
+        <p id="openweather-time" class="timestamp"></p>
       </div>
       <div id="accuweather" class="weather-box">
         <h3>AccuWeather</h3>
         <p id="accuweather-info">No data yet.</p>
-        <p id="accuweather-time" style="font-size: 0.9rem; color: #666;"></p>
+        <p id="accuweather-time" class="timestamp"></p>
       </div>
     </div>
   </main>
 
-  <footer style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(240, 248, 255, 0.9); padding: 0.5rem 1rem; font-size: 0.9rem; color: #555; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); z-index: 1000;">
+  <footer>
     Powered by WeatherAPI, OpenWeather, and AccuWeather &copy; 2025
   </footer>
 
-  <script>
-    const weatherApiKey = '2b3b27ae03a94c1a91d23532250101';
-    const openWeatherApiKey = '94cb634cb2ca6bc30356954cf33e473e';
-    const accuweatherApiKey = 'rSD2FhADg0NyAGAH05yIX5RytixKSoLa';
-
-    // Fetch weather data based on city input
-    async function fetchWeatherData() {
-      const city = document.getElementById('city').value.trim();
-      if (!city) {
-        alert('Please enter a city name.');
-        return;
-      }
-
-      const refreshButton = document.getElementById('refresh-weather');
-      refreshButton.classList.add('loading');
-
-      try {
-        const currentTime = new Date().toLocaleString();
-        const temperatures = [];
-        const conditions = [];
-
-        // Fetch from WeatherAPI
-        const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`);
-        const weatherApiData = await weatherApiResponse.json();
-        document.getElementById('weatherapi-info').innerHTML = `
-          Temperature: ${weatherApiData.current.temp_c}°C<br>
-          Condition: ${weatherApiData.current.condition.text}<br>
-          Humidity: ${weatherApiData.current.humidity}%
-        `;
-        document.getElementById('weatherapi-time').textContent = `Data collected at: ${currentTime}`;
-        temperatures.push(weatherApiData.current.temp_c);
-        conditions.push(weatherApiData.current.condition.text);
-
-        // Fetch from OpenWeather
-        const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`);
-        const openWeatherData = await openWeatherResponse.json();
-        document.getElementById('openweather-info').innerHTML = `
-          Temperature: ${openWeatherData.main.temp}°C<br>
-          Condition: ${openWeatherData.weather[0].description}<br>
-          Humidity: ${openWeatherData.main.humidity}%
-        `;
-        document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
-        temperatures.push(openWeatherData.main.temp);
-        conditions.push(openWeatherData.weather[0].description);
-
-        // Fetch from AccuWeather
-        const accuweatherLocationResponse = await fetch(`https://dataservice.accuweather.com/locations/v1/cities/search?apikey=${accuweatherApiKey}&q=${city}`);
-        const accuweatherLocationData = await accuweatherLocationResponse.json();
-        if (accuweatherLocationData.length > 0) {
-          const locationKey = accuweatherLocationData[0].Key;
-          const accuweatherWeatherResponse = await fetch(`https://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${accuweatherApiKey}`);
-          const accuweatherWeatherData = await accuweatherWeatherResponse.json();
-          if (accuweatherWeatherData.length > 0) {
-            const weather = accuweatherWeatherData[0];
-            document.getElementById('accuweather-info').innerHTML = `
-              Temperature: ${weather.Temperature.Metric.Value}°C<br>
-              Condition: ${weather.WeatherText}<br>
-              Humidity: ${weather.RelativeHumidity}%
-            `;
-            document.getElementById('accuweather-time').textContent = `Data collected at: ${currentTime}`;
-            temperatures.push(weather.Temperature.Metric.Value);
-            conditions.push(weather.WeatherText);
-          }
-        }
-
-        // Update Summary Section
-        updateSummary(temperatures, conditions);
-
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
-        document.body.insertAdjacentHTML('beforeend', `<div style="color: red; margin-top: 10px;">Failed to fetch weather data. Please check the city name and try again.</div>`);
-      } finally {
-        refreshButton.classList.remove('loading');
-      }
-    }
-
-    // Update summary section
-    function updateSummary(temperatures, conditions) {
-      const averageTemp = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(1);
-      const commonCondition = conditions.sort((a,b) => 
-        conditions.filter(v => v===a).length - conditions.filter(v => v===b).length
-      ).pop();
-
-      document.getElementById('summary-info').innerHTML = `
-        <strong>Average Temperature:</strong> ${averageTemp}°C<br>
-        <strong>Most Common Condition:</strong> ${commonCondition}<br>
-        <strong>Data Sources:</strong> ${temperatures.length} services.
-      `;
-    }
-
-    document.getElementById('fetch-weather').addEventListener('click', fetchWeatherData);
-    document.getElementById('fetch-location-weather').addEventListener('click', fetchWeatherData);
-    document.getElementById('refresh-weather').addEventListener('click', fetchWeatherData);
-
-    // Theme toggle functionality
-    const toggleTheme = () => {
-      document.body.classList.toggle('dark');
-      const isDarkMode = document.body.classList.contains('dark');
-      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    };
-
-    // Add theme toggle button dynamically
-    const settingsButton = document.createElement('button');
-    settingsButton.textContent = 'Toggle Theme';
-    settingsButton.style.marginLeft = '1rem';
-    settingsButton.onclick = toggleTheme;
-    document.querySelector('header').appendChild(settingsButton);
-
-    // Apply saved theme on load
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark');
-    }
-  </script>
+  <script src="scripts.js" defer></script>
 </body>
 </html>
