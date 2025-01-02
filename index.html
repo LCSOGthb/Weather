@@ -11,6 +11,13 @@
   <header>
     <h1>Weather Information</h1>
   </header>
+
+  <!-- Summary Section -->
+  <section id="summary-section" style="padding: 1rem; border: 1px solid #ccc; margin: 1rem; border-radius: 8px; background-color: #f9f9f9;">
+    <h2>Summary</h2>
+    <p id="summary-info">No data collected yet. Please fetch weather data to see the summary.</p>
+  </section>
+
   <main>
     <!-- Input field for city name and buttons for weather fetch and GPS detection -->
     <div class="input-container">
@@ -39,6 +46,7 @@
       </div>
     </div>
   </main>
+
   <footer style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(240, 248, 255, 0.9); padding: 0.5rem 1rem; font-size: 0.9rem; color: #555; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); z-index: 1000;">
     Powered by WeatherAPI, OpenWeather, and AccuWeather &copy; 2025
   </footer>
@@ -61,6 +69,8 @@
 
       try {
         const currentTime = new Date().toLocaleString();
+        const temperatures = [];
+        const conditions = [];
 
         // Fetch from WeatherAPI
         const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`);
@@ -71,6 +81,8 @@
           Humidity: ${weatherApiData.current.humidity}%
         `;
         document.getElementById('weatherapi-time').textContent = `Data collected at: ${currentTime}`;
+        temperatures.push(weatherApiData.current.temp_c);
+        conditions.push(weatherApiData.current.condition.text);
 
         // Fetch from OpenWeather
         const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${openWeatherApiKey}&units=metric`);
@@ -81,6 +93,8 @@
           Humidity: ${openWeatherData.main.humidity}%
         `;
         document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
+        temperatures.push(openWeatherData.main.temp);
+        conditions.push(openWeatherData.weather[0].description);
 
         // Fetch from AccuWeather
         const accuweatherLocationResponse = await fetch(`https://dataservice.accuweather.com/locations/v1/cities/search?apikey=${accuweatherApiKey}&q=${city}`);
@@ -97,8 +111,14 @@
               Humidity: ${weather.RelativeHumidity}%
             `;
             document.getElementById('accuweather-time').textContent = `Data collected at: ${currentTime}`;
+            temperatures.push(weather.Temperature.Metric.Value);
+            conditions.push(weather.WeatherText);
           }
         }
+
+        // Update Summary Section
+        updateSummary(temperatures, conditions);
+
       } catch (error) {
         console.error('Error fetching weather data:', error);
         document.body.insertAdjacentHTML('beforeend', `<div style="color: red; margin-top: 10px;">Failed to fetch weather data. Please check the city name and try again.</div>`);
@@ -107,71 +127,22 @@
       }
     }
 
-    // Fetch weather data using GPS coordinates
-    async function fetchWeatherByLocation() {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser.');
-        return;
-      }
+    // Update summary section
+    function updateSummary(temperatures, conditions) {
+      const averageTemp = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(1);
+      const commonCondition = conditions.sort((a,b) => 
+        conditions.filter(v => v===a).length - conditions.filter(v => v===b).length
+      ).pop();
 
-      const refreshButton = document.getElementById('refresh-weather');
-      refreshButton.classList.add('loading');
-
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        const locationQuery = `${latitude},${longitude}`;
-
-        try {
-          const currentTime = new Date().toLocaleString();
-
-          // Fetch from WeatherAPI
-          const weatherApiResponse = await fetch(`https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${locationQuery}`);
-          const weatherApiData = await weatherApiResponse.json();
-          document.getElementById('weatherapi-info').innerHTML = `
-            Temperature: ${weatherApiData.current.temp_c}°C<br>
-            Condition: ${weatherApiData.current.condition.text}<br>
-            Humidity: ${weatherApiData.current.humidity}%
-          `;
-          document.getElementById('weatherapi-time').textContent = `Data collected at: ${currentTime}`;
-
-          // Fetch from OpenWeather
-          const openWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${openWeatherApiKey}&units=metric`);
-          const openWeatherData = await openWeatherResponse.json();
-          document.getElementById('openweather-info').innerHTML = `
-            Temperature: ${openWeatherData.main.temp}°C<br>
-            Condition: ${openWeatherData.weather[0].description}<br>
-            Humidity: ${openWeatherData.main.humidity}%
-          `;
-          document.getElementById('openweather-time').textContent = `Data collected at: ${currentTime}`;
-
-          // Fetch from AccuWeather
-          const accuweatherLocationResponse = await fetch(`https://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${accuweatherApiKey}&q=${latitude},${longitude}`);
-          const accuweatherLocationData = await accuweatherLocationResponse.json();
-          const locationKey = accuweatherLocationData.Key;
-          const accuweatherWeatherResponse = await fetch(`https://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${accuweatherApiKey}`);
-          const accuweatherWeatherData = await accuweatherWeatherResponse.json();
-          const weather = accuweatherWeatherData[0];
-          document.getElementById('accuweather-info').innerHTML = `
-            Temperature: ${weather.Temperature.Metric.Value}°C<br>
-            Condition: ${weather.WeatherText}<br>
-            Humidity: ${weather.RelativeHumidity}%
-          `;
-          document.getElementById('accuweather-time').textContent = `Data collected at: ${currentTime}`;
-        } catch (error) {
-          console.error('Error fetching weather data by location:', error);
-          document.body.insertAdjacentHTML('beforeend', `<div style="color: red; margin-top: 10px;">Failed to fetch weather data. Please try again.</div>`);
-        } finally {
-          refreshButton.classList.remove('loading');
-        }
-      }, (error) => {
-        console.error('Geolocation error:', error);
-        alert('Unable to retrieve location. Please try again.');
-        refreshButton.classList.remove('loading');
-      });
+      document.getElementById('summary-info').innerHTML = `
+        <strong>Average Temperature:</strong> ${averageTemp}°C<br>
+        <strong>Most Common Condition:</strong> ${commonCondition}<br>
+        <strong>Data Sources:</strong> ${temperatures.length} services.
+      `;
     }
 
     document.getElementById('fetch-weather').addEventListener('click', fetchWeatherData);
-    document.getElementById('fetch-location-weather').addEventListener('click', fetchWeatherByLocation);
+    document.getElementById('fetch-location-weather').addEventListener('click', fetchWeatherData);
     document.getElementById('refresh-weather').addEventListener('click', fetchWeatherData);
 
     // Theme toggle functionality
@@ -186,7 +157,7 @@
     settingsButton.textContent = 'Toggle Theme';
     settingsButton.style.marginLeft = '1rem';
     settingsButton.onclick = toggleTheme;
-    document.querySelector('main').appendChild(settingsButton);
+    document.querySelector('header').appendChild(settingsButton);
 
     // Apply saved theme on load
     const savedTheme = localStorage.getItem('theme');
