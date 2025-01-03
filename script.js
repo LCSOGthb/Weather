@@ -27,16 +27,18 @@ const fetchWeatherData = async () => {
 };
 
 const updateWeatherInfo = (data, containerId, time) => {
-  const container = document.getElementById(containerId);
+  const infoElement = document.getElementById(`${containerId}-info`);
+  const timeElement = document.getElementById(`${containerId}-time`);
+
   if (data) {
-    container.querySelector(".info").innerHTML = `
+    infoElement.innerHTML = `
       Temperature: ${data.temp}°C<br>
       Condition: ${data.condition}<br>
       Humidity: ${data.humidity}%
     `;
-    container.querySelector(".timestamp").textContent = `Data collected at: ${time}`;
+    timeElement.textContent = `Data collected at: ${time}`;
   } else {
-    container.querySelector(".info").textContent = "No data available.";
+    infoElement.textContent = "No data available.";
   }
 };
 
