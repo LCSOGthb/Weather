@@ -1,7 +1,33 @@
+const debounce = (func, delay) => {
+  let debounceTimer;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+};
+
+const sanitizeInput = (input) => {
+  const element = document.createElement('div');
+  element.innerText = input;
+  return element.innerHTML;
+};
+
+const displayError = (message) => {
+  const errorElement = document.getElementById("error-message");
+  errorElement.textContent = message;
+  errorElement.style.display = "block";
+  setTimeout(() => {
+    errorElement.style.display = "none";
+  }, 5000);
+};
+
 const fetchWeatherData = async () => {
-  const city = document.getElementById("city").value.trim();
+  let city = document.getElementById("city").value.trim();
+  city = sanitizeInput(city);
   if (!city) {
-    alert("Please enter a city name.");
+    displayError("Please enter a city name.");
     return;
   }
 
@@ -20,7 +46,7 @@ const fetchWeatherData = async () => {
     updateSummary(data.summary);
   } catch (error) {
     console.error("Error fetching weather data:", error);
-    alert("Failed to fetch weather data. Please try again.");
+    displayError("Failed to fetch weather data. Please try again.");
   } finally {
     refreshButton.classList.remove("loading");
   }
@@ -42,4 +68,4 @@ const updateWeatherInfo = (data, containerId, time) => {
   }
 };
 
-document.getElementById("fetch-weather").addEventListener("click", fetchWeatherData);
+document.getElementById("fetch-weather").addEventListener("click", debounce(fetchWeatherData, 300));
