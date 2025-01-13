@@ -22,10 +22,10 @@
     <!-- Input field for city name and buttons for weather fetch and GPS detection -->
     <div class="input-container">
       <label for="city" class="visually-hidden">City Name</label>
-      <input type="text" id="city" placeholder="Enter city name" />
-      <button id="fetch-weather">Get Weather</button>
-      <button id="fetch-location-weather">Use My Location</button>
-      <button id="refresh-weather" class="refresh"></button>
+      <input type="text" id="city" placeholder="Enter city name" aria-label="City Name" />
+      <button id="fetch-weather" aria-label="Get Weather">Get Weather</button>
+      <button id="fetch-location-weather" aria-label="Use My Location">Use My Location</button>
+      <button id="refresh-weather" class="refresh" aria-label="Refresh Weather"></button>
     </div>
 
     <!-- Weather information containers -->
@@ -52,6 +52,6 @@
     Powered by WeatherAPI, OpenWeather, and AccuWeather &copy; 2025
   </footer>
 
-  <script src="scripts.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
