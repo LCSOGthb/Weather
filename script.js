@@ -1,32 +1,30 @@
-const fetchWeatherData = async () => {
-  let city = document.getElementById("city").value.trim();
-  city = sanitizeInput(city);
-  if (!city) {
-    displayError("Please enter a city name.");
-    return;
-  }
+const axios = require('axios');
 
-  const refreshButton = document.getElementById("refresh-weather");
-  refreshButton.classList.add("loading");
+export default async function handler(req, res) {
+  const { city } = req.query;
+
+  if (!city) {
+    return res.status(400).json({ error: "City parameter is required" });
+  }
 
   try {
-    const currentTime = new Date().toLocaleString();
-    // Replace `/weather` with your full API URL
-    const response = await fetch(`https://lwahr.vercel.app/weather?city=${city}`);
-    if (!response.ok) {
-      throw new Error(`API responded with status ${response.status}`);
-    }
-    const data = await response.json();
+    const weatherApiResponse = await axios.get(`https://api.weatherapi.com/v1/current.json?key=YOUR_WEATHERAPI_KEY&q=${city}`);
+    const openWeatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=YOUR_OPENWEATHERMAP_KEY`);
 
-    updateWeatherInfo(data.weatherAPI, "weatherapi", currentTime);
-    updateWeatherInfo(data.openWeather, "openweather", currentTime);
-    updateWeatherInfo(data.accuWeather, "accuweather", currentTime);
-
-    updateSummary(data.summary);
+    res.status(200).json({
+      weatherAPI: {
+        temp: weatherApiResponse.data.current.temp_c,
+        condition: weatherApiResponse.data.current.condition.text,
+        humidity: weatherApiResponse.data.current.humidity,
+      },
+      openWeather: {
+        temp: (openWeatherResponse.data.main.temp - 273.15).toFixed(1), // Convert Kelvin to Celsius
+        condition: openWeatherResponse.data.weather[0].description,
+        humidity: openWeatherResponse.data.main.humidity,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching weather data:", error);
-    displayError("Failed to fetch weather data. Please try again.");
-  } finally {
-    refreshButton.classList.remove("loading");
+    console.error("Error fetching weather data:", error.message);
+    res.status(500).json({ error: "Failed to fetch weather data" });
   }
-};
+}
